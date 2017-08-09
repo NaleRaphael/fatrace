@@ -3,19 +3,16 @@ import traceback
 
 import pandas as pd
 
-def main(fn):
-    df = pd.read_excel(fn)
-    keys = df.keys()
+from core import XlsxFile, Menu
 
-    # TODO: set `datetime_format` by reading from config file
-    writer = pd.ExcelWriter('output.xlsx', datetime_format='yyyy/MM/dd')
-    df.to_excel(writer, index=False)
-    writer.save()
-
+def main(fpath):
+    menu = Menu()
+    menu.from_excel(fpath)
+    menu.to_excel('test.xlsx')
 
 if __name__ == '__main__':
     try:
-        fn = r'data\menu\menu_20170626.xlsx'
-        main(fn)
+        fpath = r'data\menu\menu_20170626.xlsx'
+        main(fpath)
     except Exception:
         traceback.print_exc()
