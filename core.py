@@ -31,19 +31,19 @@ class XlsxFile(object):
         writer = pd.ExcelWriter(opath, datetime_format=DT_FMT)
         self.df.to_excel(writer, index=False)
         if header is not None:
-            pd.DataFrame(columns).transpose().to_excel(writer, index=False, header=False, startrow=0)
+            pd.DataFrame(header).transpose().to_excel(writer, index=False, header=False, startrow=0)
         writer.save()
 
 
 class Menu(XlsxFile):
     def to_excel(self, opath):
-        col = self._remove_serial_num_of_columns()
-        super(Menu, self).to_excel(opath, columns=col)
+        hd = self._remove_serial_num_of_header()
+        super(Menu, self).to_excel(opath, header=hd)
 
-    def _remove_serial_num_of_columns(self, delimiter='.'):
-        col = []
+    def _remove_serial_num_of_header(self, delimiter='.'):
+        hd = []
         for val in self.df.columns:
             parts = val.split(delimiter)
             # no matter `parts` can be splitted or not, it will be an list
-            col.append(parts[0])
-        return col
+            hd.append(parts[0])
+        return hd
