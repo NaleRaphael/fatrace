@@ -1,0 +1,24 @@
+{
+  "name": "fatrace",
+  "version": "1.0.0",
+  "description": "Editor for fatraceschool",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://NaleRaphael@bitbucket.org/NaleRaphael/fatrace.git"
+  },
+  "dependencies": {
+    "zerorpc": "fyears/zerorpc-node"
+  },
+  "devDependencies": {
+    "electron": "^1.4.1",
+    "electron-packager": "^8.5.1"
+  },
+  "author": "Nale Raphael",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/NaleRaphael/fatrace#readme"
+}
