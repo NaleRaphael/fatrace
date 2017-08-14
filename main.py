@@ -1,7 +1,6 @@
 from __future__ import absolute_import, print_function, division
 import os.path
 import traceback
-from pprint import pprint
 
 import pandas as pd
 import config
@@ -14,10 +13,11 @@ def main(fpath):
     menu.to_excel('test.xlsx')
 
 def config_test():
-    opath = r'D:\Users\Nale\Documents\Bitbucket\fatrace\converter_config.json'
-    conf = config.DataConfig()
-    data = conf.load(opath)
-    pprint(data)
+    opath = r'converter_config.json'
+    dconf = config.DataConfig()
+    dconf.load(opath)
+    print(dconf)
+    pass
 
     # conf_menu = config.MenuConfig()
     # conf_menu.header = ['school', 'dish1', 'dish2', 'dish3']

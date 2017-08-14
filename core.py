@@ -52,7 +52,6 @@ class Ingredient(XlsxFile):
     def to_excel(self, opath):
         super(Ingredient, self).to_excel(opath)
 
-
 class Seasoning(XlsxFile):
     def to_excel(self, opath):
         super(Seasoning, self).to_excel(opath)
