@@ -1,6 +1,13 @@
 from __future__ import absolute_import
 import json
 
+__all__ = [
+    'MenuConfig', 'IngredientConfig', 'SeasoningConfig', 
+    'DataConfig'
+]
+
+DEFAULT_CONFIG_PATH = r'converter_config.json'
+
 class ConfigBase(object):
     def __init__(self, **kwargs):
         dv = kwargs.get('default_values')
@@ -32,12 +39,18 @@ class SeasoningConfig(ConfigBase):
         super(SeasoningConfig, self).__init__(**kwargs)
 
 class DataConfig(object):
-    def __init__(self, config_path=None):
+    __single = None
+    def __new__(clz):
+        if DataConfig.__single is None:
+            DataConfig.__single = object.__new__(clz)
+        return DataConfig.__single
+
+    def __init__(self, config_path=DEFAULT_CONFIG_PATH):
         self.menu = None
         self.ingredient = None
         self.seasoning = None
         if config_path is not None:
-            self.config = json.loads(config_path)
+            self.load(config_path)
 
     def export(self, opath):
         with open(opath, 'w') as ofile:

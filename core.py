@@ -1,8 +1,15 @@
 from __future__ import absolute_import, print_function, division
 import pandas as pd
 
+from config import (MenuConfig, IngredientConfig, SeasoningConfig, DataConfig)
+
+__all__ = [
+    'Menu', 'Ingredient', 'Seasoning'
+]
+
 # TODO: set `datetime_format` by reading from config file
 DT_FMT = 'yyyy/MM/dd'   # datetime_format
+
 
 class XlsxFile(object):
     def __init__(self):
@@ -36,17 +43,20 @@ class XlsxFile(object):
 
 
 class Menu(XlsxFile):
+    def __init__(self):
+        super(Menu, self).__init__()
+        self.config = DataConfig().menu
+
     def to_excel(self, opath):
         hd = self._remove_serial_num_of_header()
         super(Menu, self).to_excel(opath, header=hd)
 
     def _remove_serial_num_of_header(self, delimiter='.'):
-        hd = []
-        for val in self.df.columns:
-            parts = val.split(delimiter)
-            # no matter `parts` can be splitted or not, it will be an list
-            hd.append(parts[0])
-        return hd
+        # no matter `parts` can be splitted or not, it will be an list
+        return [val.split(delimiter)[0] for val in self.df.columns]
+
+    def build_ingredient_table(self):
+        pass
 
 class Ingredient(XlsxFile):
     def to_excel(self, opath):
