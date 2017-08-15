@@ -40,12 +40,16 @@ class SeasoningConfig(ConfigBase):
 
 class DataConfig(object):
     __single = None
+    __initialized = False
+
     def __new__(clz):
         if DataConfig.__single is None:
             DataConfig.__single = object.__new__(clz)
         return DataConfig.__single
 
     def __init__(self, config_path=DEFAULT_CONFIG_PATH):
+        if DataConfig.__initialized: return
+        DataConfig.__initialized = True
         self.menu = None
         self.ingredient = None
         self.seasoning = None
