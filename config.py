@@ -10,9 +10,10 @@ DEFAULT_CONFIG_PATH = r'converter_config.json'
 
 class ConfigBase(object):
     def __init__(self, **kwargs):
-        dv = kwargs.get('default_values')
+        dv = kwargs.pop('default_values')
         self.header = self._get_header(dv)
         self.default_values = self._get_default_values(dv)
+        self.misc = kwargs
 
     def load(self, fpath):
         with open(fpath, 'r') as ifile:
@@ -29,6 +30,7 @@ class ConfigBase(object):
 class MenuConfig(ConfigBase):
     def __init__(self, **kwargs):
         super(MenuConfig, self).__init__(**kwargs)
+        self.map2ingr = self.misc.pop('map2ingr')
 
 class IngredientConfig(ConfigBase):
     def __init__(self, **kwargs):
