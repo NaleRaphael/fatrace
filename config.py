@@ -30,7 +30,9 @@ class ConfigBase(object):
 class MenuConfig(ConfigBase):
     def __init__(self, **kwargs):
         super(MenuConfig, self).__init__(**kwargs)
-        self.map2ingr = self.misc.pop('map2ingr')
+        self.dishes_map2ingr = self.misc.pop('dishes_map2ingr')
+        self.date = self.misc.pop('date')
+        self.date_2ingr = self.misc.pop('date_2ingr')
 
 class IngredientConfig(ConfigBase):
     def __init__(self, **kwargs):

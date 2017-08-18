@@ -56,16 +56,17 @@ class Menu(XlsxFile):
         return [val.split(delimiter)[0] for val in self.df.columns]
 
     def build_ingredient_row(self, obj_ingr):
+        dm = self.config.dishes_map2ingr
+        size = self.df.index.size
         hd_ingr = obj_ingr.config.header
-        df_ingr = pd.DataFrame(columns=hd_ingr)
-        mi = self.config.map2ingr
 
-        for i in range(self.df.index.size):
-            pass
-            # new_row = {mi[k]: self.df.ix[[i]][k].values for k in mi}
-            # [nr[mi[k]].append(self.df.ix[[i]][k].values) if k in nr 
-            #  else nr.update({mi[k]: self.df.ix[[i]][k].values}) for k in mi]
-#        result = self.df.append([], ignore_index=True)
+        dv_ingr = obj_ingr.config.default_values.copy()
+        dv_ingr[self.config.date_2ingr] = self.df[self.config.date]
+        df_ingr = pd.DataFrame(dv_ingr, index=range(size))
+
+        for i, k in enumerate(dm):
+            df_ingr.loc[i, dm[k]] = self.df.loc[i//5, k]
+        obj_ingr.df = df_ingr.reindex_axis(hd_ingr, axis=1, copy=False)
 
 class Ingredient(XlsxFile):
     def __init__(self):
@@ -75,6 +76,7 @@ class Ingredient(XlsxFile):
     def to_excel(self, opath):
         # TODO: export individual files according to date
         super(Ingredient, self).to_excel(opath)
+
 
 class Seasoning(XlsxFile):
     def __init__(self):

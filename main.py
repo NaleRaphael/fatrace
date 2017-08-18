@@ -20,7 +20,8 @@ def build_table_from_menu(fpath):
     ingr = Ingredient()
     menu.from_excel(fpath)
     menu.build_ingredient_row(ingr)
-    print(menu)
+    print(ingr.df)
+    ingr.to_excel('test_ingr.xlsx')
 
 if __name__ == '__main__':
     try:
