@@ -5,7 +5,7 @@ import traceback
 import pandas as pd
 import config
 
-from core import XlsxFile, Menu, Ingredient, Seasoning
+from core import Menu, Ingredient, Seasoning, Dishes
 
 def main(fpath):
     menu = Menu()
@@ -16,12 +16,14 @@ def config_test():
     dconf = config.DataConfig()
 
 def build_table_from_menu(fpath):
-    menu = Menu()
-    ingr = Ingredient()
-    menu.from_excel(fpath)
-    menu.build_ingredient_row(ingr)
-    print(ingr.df)
-    ingr.to_excel('test_ingr.xlsx')
+    menu = Menu.from_excel(fpath)
+    menu.export_ingredient_sheet()
+
+def dish_test(fpath):
+    menu = Menu.from_excel(fpath)
+    dish = Dishes(date=1).parse(menu.df.loc[0], menu.config.k_dishes)
+    print(dish)
+
 
 if __name__ == '__main__':
     try:
@@ -30,5 +32,6 @@ if __name__ == '__main__':
         # main(fpath)
         # config_test()
         build_table_from_menu(fpath)
+        # dish_test(fpath)
     except Exception:
         traceback.print_exc()

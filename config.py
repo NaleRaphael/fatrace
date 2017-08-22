@@ -27,20 +27,28 @@ class ConfigBase(object):
         if dv is not None:
             return {k: val[k] for val in dv for k in val}
 
+
 class MenuConfig(ConfigBase):
     def __init__(self, **kwargs):
         super(MenuConfig, self).__init__(**kwargs)
-        self.dishes_map2ingr = self.misc.pop('dishes_map2ingr')
-        self.date = self.misc.pop('date')
-        self.date_2ingr = self.misc.pop('date_2ingr')
+        # key (field name) of date
+        self.k_date = self.misc.pop('k_date')
+        # keys (field names) of dishes in dataframe
+        self.k_dishes = self.misc.pop('k_dishes')
+
 
 class IngredientConfig(ConfigBase):
     def __init__(self, **kwargs):
         super(IngredientConfig, self).__init__(**kwargs)
+        self.k_date = self.misc.pop('k_date')
+        self.k_dish = self.misc.pop('k_dish')
+        self.k_ingr = self.misc.pop('k_ingr')
+
 
 class SeasoningConfig(ConfigBase):
     def __init__(self, **kwargs):
         super(SeasoningConfig, self).__init__(**kwargs)
+
 
 class DataConfig(object):
     __single = None
