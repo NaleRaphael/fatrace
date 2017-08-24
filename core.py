@@ -76,7 +76,7 @@ class Menu(XlsxFile):
 
             # use unix timestamp as key
             dishes = Dishes(date=k)
-            dishes.parse(row, self.config.k_dishes)
+            dishes.parse_from_menu(row, self.config.k_dishes)
             self.dlist.append(dishes)
 
     def build_ingredient_dataframe(self):
@@ -93,6 +93,7 @@ class Ingredient(XlsxFile):
         super(Ingredient, self).__init__()
         self.config = DataConfig().ingredient
         self.date = date
+        self.dishes = None
 
     @classmethod
     def from_daily_menu(clz, daily_menu):
@@ -118,8 +119,33 @@ class Ingredient(XlsxFile):
         ingr.df = df.reindex_axis(ingr.config.header, axis=1)
         return ingr
 
+    @classmethod
+    def from_excel(clz, fpath):
+        obj = super(Ingredient, clz).from_excel(fpath)
+        obj._set_date()
+        obj._init_dishes()
+        return obj
+
     def to_excel(self, opath):
         super(Ingredient, self).to_excel(opath)
+
+    def _set_date(self):
+        try:
+            self.date = self.df.loc[0, self.config.k_date]
+        except:
+            raise
+
+    def _init_dishes(self):
+        self.dishes = Dishes(date=self.date)
+
+        d = {}
+        for i, row in self.df.iterrows():
+            key = row[self.config.k_dish]
+            if key not in d:
+                d[key] = []
+            d[key].append(row[self.config.k_ingr])
+
+        self.dishes.from_dict(d)
 
 
 class Seasoning(XlsxFile):
@@ -152,9 +178,9 @@ class Dish(dict):
         -------
         >>> dish = Dish(name='corn_soup', ingr=['corn', 'butter', 'egg'])
         >>> print(dish.expand())
-        ['corn_soup', 'corn']
-        ['corn_soup', 'butter']
-        ['corn_soup', 'egg']
+        [['corn_soup', 'corn'],
+        ['corn_soup', 'butter'],
+        ['corn_soup', 'egg']]
         """
         ingr_list = [''] if len(self.ingr) == 0 else self.ingr
         return [(self.name, v) for v in ingr_list]
@@ -170,17 +196,20 @@ class Dishes(list):
         self.date = kwargs.pop('date')
         super(Dishes, self).__init__(*args, **kwargs)
 
-    def parse(self, src, desired):
+    def parse_from_menu(self, src, desired):
         """
         Parameters
         ----------
         src : pandas.core.series.Series
-            Srouce to be parsed.
+            Source to be parsed.
         desired : list
             Keys of desired dishes to be parsed.
         """
         parsed = [Dish(name=src[k]) for k in desired]
         self.extend(parsed)
+
+    def from_dict(self, d):
+        self.extend([Dish(name=k, ingr=d[k]) for k in d])
 
     def count_ingr(self, cnt_empty_list=True):
         # get length of ingredients of each dish

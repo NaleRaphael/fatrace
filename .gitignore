@@ -4,6 +4,8 @@
 # python
 *.pyc
 
+# configuration
+collect2db_config.json
 
 # --- node.js ---
 # Logs
