@@ -1,10 +1,12 @@
 from __future__ import absolute_import, print_function, division
 import pandas as pd
+import codecs
+import json
 
-from config import (DataConfig)
+from config import DataConfig
 
 __all__ = [
-    'Menu', 'Ingredient', 'Seasoning'
+    'Menu', 'Ingredient', 'Seasoning', 'IngredientDB'
 ]
 
 # TODO: set `datetime_format` by reading from config file
@@ -56,9 +58,9 @@ class Menu(XlsxFile):
         self.dlist = []
 
     @classmethod
-    def from_excel(clz, fpath):
+    def from_excel(clz, fpath, db=None):
         obj = super(Menu, clz).from_excel(fpath)
-        obj._init_dlist()
+        obj._init_dlist(db=db)
         return obj
 
     def to_excel(self, opath):
@@ -69,14 +71,14 @@ class Menu(XlsxFile):
         # no matter `parts` can be splitted or not, it will be an list
         return [val.split(delimiter)[0] for val in self.df.columns]
 
-    def _init_dlist(self):
+    def _init_dlist(self, db=None):
         for i, row in self.df.iterrows():
             # truncate unix timestamp to second
             k = row[self.config.k_date].value // UT_FACTOR
 
             # use unix timestamp as key
-            dishes = Dishes(date=k)
-            dishes.parse_from_menu(row, self.config.k_dishes)
+            dishes = DailyMenu(date=k)
+            dishes.parse_from_menu(row, self.config.k_dishes, db=db)
             self.dlist.append(dishes)
 
     def build_ingredient_dataframe(self):
@@ -136,7 +138,7 @@ class Ingredient(XlsxFile):
             raise
 
     def _init_dishes(self):
-        self.dishes = Dishes(date=self.date)
+        self.dishes = DailyMenu(date=self.date)
 
         d = {}
         for i, row in self.df.iterrows():
@@ -169,6 +171,8 @@ class Dish(dict):
 
     def expand(self):
         """
+        Expand object content into list in the format of `[dish_name, ingredient]`.
+
         Returns
         -------
         out : list of tuples
@@ -186,7 +190,7 @@ class Dish(dict):
         return [(self.name, v) for v in ingr_list]
 
 
-class Dishes(list):
+class DailyMenu(list):
     """
     List of dishes with assigned date.
 
@@ -194,9 +198,9 @@ class Dishes(list):
     """
     def __init__(self, *args, **kwargs):
         self.date = kwargs.pop('date')
-        super(Dishes, self).__init__(*args, **kwargs)
+        super(DailyMenu, self).__init__(*args, **kwargs)
 
-    def parse_from_menu(self, src, desired):
+    def parse_from_menu(self, src, desired, db=None):
         """
         Parameters
         ----------
@@ -204,8 +208,15 @@ class Dishes(list):
             Source to be parsed.
         desired : list
             Keys of desired dishes to be parsed.
+        db : IngredientDB
+            Database for searching ingredients of dish.
         """
-        parsed = [Dish(name=src[k]) for k in desired]
+        if type(db) is not IngredientDB:
+            raise TypeError('Type of `db` should be `IngredientDB`.')
+        if db is not None:
+            parsed = [Dish(name=src[k], ingr=db.query(src[k])) for k in desired]
+        else:
+            parsed = [Dish(name=src[k]) for k in desired]
         self.extend(parsed)
 
     def from_dict(self, d):
@@ -213,7 +224,7 @@ class Dishes(list):
 
     def count_ingr(self, cnt_empty_list=True):
         # get length of ingredients of each dish
-        lens = map(len, [v[v.name] for v in self])
+        lens = map(len, [v.ingr for v in self])
 
         if cnt_empty_list == True:
             lens = map(lambda x: 1 if x == 0 else x, lens)
@@ -227,3 +238,62 @@ class Dishes(list):
             Each tuple contains name and ingredients of corresponding dish.
         """
         return [name_ingr for dish in self for name_ingr in dish.expand()]
+
+
+class JsonWriter(object):
+    @classmethod
+    def export(clz, dict_data, fpath, encoding='utf-8', indent=4):
+        with codecs.open(fpath, 'w', encoding=encoding) as f:
+            json.dump(dict_data, f, indent=indent, ensure_ascii=False)
+
+
+class IngredientDB(dict):
+    __single = None
+    __initialized = False
+
+    def __new__(clz, *args, **kwargs):
+        if IngredientDB.__single is None:
+            IngredientDB.__single = dict.__new__(clz)
+        return IngredientDB.__single
+
+    def __init__(self, fpath):
+        if IngredientDB.__initialized: return
+        self.load(fpath)
+        IngredientDB.__initialized = True
+
+    def load(self, fpath):
+        with open(fpath, 'r') as ifile:
+            super(IngredientDB, self).__init__(json.load(ifile))
+
+    def export(self, fpath):
+        try:
+            JsonWriter.export(self, fpath)
+        except:
+            raise
+
+    @classmethod
+    def collect(clz, ingr_dir, ingr_pattern, load_right_away=False,
+                dbname='db_ingr', dupname='duplicate_ingr'):
+        import os
+        import glob
+        sheets = glob.glob(os.path.join(ingr_dir, ingr_pattern))
+        data = {}
+        duplicate = []
+        for fp in sheets:
+            ingr = Ingredient.from_excel(fp)
+            for dish in ingr.dishes:
+                if dish.name in data:
+                    duplicate.append(data)
+                else:
+                    data[dish.name] = dish.ingr
+
+        JsonWriter.export(data, '{0}.json'.format(dbname))
+        JsonWriter.export(duplicate, '{0}.json'.format(dupname))
+
+        if load_right_away:
+            obj = clz()
+            obj.__dict__ = data
+            return obj
+
+    def query(self, key):
+        return self.get(key, [])

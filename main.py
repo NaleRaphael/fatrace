@@ -5,7 +5,7 @@ import traceback
 import pandas as pd
 import config
 
-from core import Menu, Ingredient, Seasoning, Dishes
+from core import Menu, Ingredient, Seasoning, DailyMenu, IngredientDB
 
 def main(fpath):
     menu = Menu()
@@ -14,24 +14,26 @@ def main(fpath):
 
 def config_test():
     dconf = config.DataConfig()
+    print(dconf)
 
-def build_table_from_menu(fpath):
-    menu = Menu.from_excel(fpath)
+def build_table_from_menu(fpath, dbpath):
+    ingrdb = IngredientDB(dbpath)
+    menu = Menu.from_excel(fpath, db=ingrdb)
     menu.export_ingredient_sheet()
 
-def dish_test(fpath):
-    menu = Menu.from_excel(fpath)
-    dish = Dishes(date=1).parse(menu.df.loc[0], menu.config.k_dishes)
-    print(dish)
-
+def db_test(dbpath):
+    ingrdb = IngredientDB(dbpath)
+    print(ingrdb)
 
 if __name__ == '__main__':
     try:
-        fpath = r'data\menu\menu_mul.xlsx'
+        # fpath = r'data\menu\menu_mul.xlsx'
+        fpath = r'data\menu\20170918-0922.xlsx'
+        dbpath = r'db_ingr.json'
 
         # main(fpath)
         # config_test()
-        build_table_from_menu(fpath)
-        # dish_test(fpath)
+        build_table_from_menu(fpath, dbpath)
+        # db_test(dbpath)
     except Exception:
         traceback.print_exc()
