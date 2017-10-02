@@ -50,17 +50,17 @@ class XlsxFile(object):
 class Menu(XlsxFile):
     """
     @attr config : configurations and settings of menu
-    @attr dlist : list of dishes
+    @attr dmlist : list of daily menu
     """
     def __init__(self):
         super(Menu, self).__init__()
         self.config = DataConfig().menu
-        self.dlist = []
+        self.dmlist = []
 
     @classmethod
     def from_excel(clz, fpath, db=None):
         obj = super(Menu, clz).from_excel(fpath)
-        obj._init_dlist(db=db)
+        obj._init_dmlist(db=db)
         return obj
 
     def to_excel(self, opath):
@@ -71,18 +71,18 @@ class Menu(XlsxFile):
         # no matter `parts` can be splitted or not, it will be an list
         return [val.split(delimiter)[0] for val in self.df.columns]
 
-    def _init_dlist(self, db=None):
+    def _init_dmlist(self, db=None):
         for i, row in self.df.iterrows():
             # truncate unix timestamp to second
             k = row[self.config.k_date].value // UT_FACTOR
 
             # use unix timestamp as key
-            dishes = DailyMenu(date=k)
-            dishes.parse_from_menu(row, self.config.k_dishes, db=db)
-            self.dlist.append(dishes)
+            dm = DailyMenu(date=k)
+            dm.parse_from_menu(row, self.config.k_dishes, db=db)
+            self.dmlist.append(dm)
 
     def build_ingredient_dataframe(self):
-        return [Ingredient.from_daily_menu(val) for val in self.dlist]
+        return [Ingredient.from_daily_menu(val) for val in self.dmlist]
 
     def export_ingredient_sheet(self, fname='ingr'):
         sheets = self.build_ingredient_dataframe()
