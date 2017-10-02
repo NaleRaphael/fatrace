@@ -297,3 +297,28 @@ class IngredientDB(dict):
 
     def query(self, key):
         return self.get(key, [])
+
+    def insert(self, key, val, overwrite=False):
+        """
+        Parameters
+        ----------
+        key : string
+            Key of item to be inserted.
+        val : list
+            Value of item.
+        overwrite : bool
+            Overwrite existing value if the key has already in database.
+
+        Returns
+        -------
+        isSuccess : bool
+            If item is added successfully, return true. Otherwise, return false.
+        """
+        if type(val) is not list:
+            raise TypeError('Given `val` should be a list.')
+        is_exist = key in self
+        if not is_exist or (is_exist and overwrite):
+            self[key] = val
+            return True
+        else:
+            return False
