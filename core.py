@@ -298,7 +298,7 @@ class IngredientDB(dict):
     def query(self, key):
         return self.get(key, [])
 
-    def insert(self, key, val, overwrite=False):
+    def insert(self, key, val, overwrite=False, ori_encodig='utf-8'):
         """
         Parameters
         ----------
@@ -316,6 +316,8 @@ class IngredientDB(dict):
         """
         if type(val) is not list:
             raise TypeError('Given `val` should be a list.')
+        key = key.decode(ori_encodig)
+        val = [v.decode(ori_encodig) for v in val]
         is_exist = key in self
         if not is_exist or (is_exist and overwrite):
             self[key] = val
