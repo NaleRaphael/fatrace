@@ -1,0 +1,33 @@
+syntax = "proto3";
+package fatrace;
+
+// Usage of timestamp, see https://github.com/google/protobuf/blob/master/examples/addressbook.proto
+import "google/protobuf/timestamp.proto";
+
+message Ingredient {
+    google.protobuf.Timestamp date = 1;
+}
+
+message Dish {
+    string name = 1;
+    repeated string ingr = 2;
+}
+
+message DailyMenu {
+    uint64 date = 1;
+    repeated Dish dishes = 2;
+}
+
+message Foo {
+    repeated int32 nums = 1;
+    google.protobuf.Timestamp date = 2;
+}
+
+message DBMsg {
+    bool isUpdated = 1;
+}
+
+// --- RPC service ---
+service IngredientDB {
+    rpc Insert (Dish) returns (DBMsg) {}
+}
