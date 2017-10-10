@@ -1,11 +1,8 @@
 from __future__ import absolute_import, print_function, division
-import os.path
 import traceback
 
-import pandas as pd
-import config
-
-from core import Menu, Ingredient, Seasoning, DailyMenu, IngredientDB
+from fatrace.core import config
+from fatrace.core import Menu, IngredientDB
 
 def main(fpath):
     menu = Menu()
@@ -27,8 +24,7 @@ def db_test(dbpath):
 
 if __name__ == '__main__':
     try:
-        # fpath = r'data\menu\menu_mul.xlsx'
-        fpath = r'data\menu\20170918-0922.xlsx'
+        fpath = r'data\menu\menu_mul.xlsx'
         dbpath = r'db_ingr.json'
 
         # main(fpath)

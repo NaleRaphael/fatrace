@@ -1,12 +1,12 @@
 from __future__ import absolute_import, print_function, division
 import pandas as pd
-import codecs
 import json
 
-from config import DataConfig
+from .config import DataConfig
+from .io import JsonWriter
 
 __all__ = [
-    'Menu', 'Ingredient', 'Seasoning', 'IngredientDB'
+    'Menu', 'Ingredient', 'Seasoning', 'Dish', 'DailyMenu', 'IngredientDB'
 ]
 
 # TODO: set `datetime_format` by reading from config file
@@ -238,13 +238,6 @@ class DailyMenu(list):
             Each tuple contains name and ingredients of corresponding dish.
         """
         return [name_ingr for dish in self for name_ingr in dish.expand()]
-
-
-class JsonWriter(object):
-    @classmethod
-    def export(clz, dict_data, fpath, encoding='utf-8', indent=4):
-        with codecs.open(fpath, 'w', encoding=encoding) as f:
-            json.dump(dict_data, f, indent=indent, ensure_ascii=False)
 
 
 class IngredientDB(dict):

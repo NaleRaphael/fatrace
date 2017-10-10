@@ -4,18 +4,20 @@ package fatrace;
 // Usage of timestamp, see https://github.com/google/protobuf/blob/master/examples/addressbook.proto
 import "google/protobuf/timestamp.proto";
 
-message Ingredient {
-    google.protobuf.Timestamp date = 1;
+message Ingr {
+    string name = 1;
+    float weight = 2;
 }
 
 message Dish {
     string name = 1;
-    repeated string ingr = 2;
+    repeated Ingr ingrs = 2;
 }
 
 message DailyMenu {
-    uint64 date = 1;
-    repeated Dish dishes = 2;
+    google.protobuf.Timestamp data_serve = 1;
+    google.protobuf.Timestamp date_import = 2;
+    repeated Dish dishes = 3;
 }
 
 message Foo {
@@ -24,10 +26,10 @@ message Foo {
 }
 
 message DBMsg {
-    bool isUpdated = 1;
+    bool is_updated = 1;
 }
 
 // --- RPC service ---
-service IngredientDB {
+service IngrDBManager {
     rpc Insert (Dish) returns (DBMsg) {}
 }
