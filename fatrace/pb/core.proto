@@ -21,8 +21,7 @@ message DailyMenu {
 }
 
 message Foo {
-    repeated int32 nums = 1;
-    google.protobuf.Timestamp date = 2;
+    string content = 1;
 }
 
 message DBMsg {
@@ -32,4 +31,9 @@ message DBMsg {
 // --- RPC service ---
 service IngrDBManager {
     rpc Insert (Dish) returns (DBMsg) {}
+}
+
+service Echoer {
+    rpc Echo (Foo) returns (Foo) {}
+    rpc GhostEcho (Foo) returns (Foo) {}
 }
