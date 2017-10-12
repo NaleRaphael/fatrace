@@ -1,0 +1,22 @@
+{
+  "name": "fatrace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NaleRaphael/fatrace.git"
+  },
+  "author": "NaleRaphael",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NaleRaphael/fatrace/issues"
+  },
+  "homepage": "https://github.com/NaleRaphael/fatrace#readme",
+  "devDependencies": {
+    "electron": "1.7.9"
+  }
+}
