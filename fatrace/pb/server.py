@@ -1,66 +1,49 @@
 from __future__ import absolute_import
 
+import sys
 import time
-
 from concurrent import futures
 import grpc
 
-from fatrace.pb.core_pb2 import DBMsg
-from fatrace.pb.core_pb2_grpc import IngrDBManagerServicer, add_IngrDBManagerServicer_to_server
-from fatrace.pb.core_pb2 import Foo
-from fatrace.pb.core_pb2_grpc import  EchoerServicer, add_EchoerServicer_to_server
-from fatrace.core import IngredientDB
-from fatrace.pb.converter import Converter
+from fatrace.pb import servicer
+from fatrace.pb import core_pb2_grpc
 
 _ONE_DAY_IN_SECONDS = 60*60*24
-_INGR_DB_PATH = 'db_ingr.json'
 
-class IngrDBManager(IngrDBManagerServicer):
-    # TODO: improve this
-    def Insert(self, request, context):
-        obj = Converter.toDish(request)
-        db = IngredientDB(_INGR_DB_PATH)
-        res = db.insert(obj.name, obj.ingr)
-        if res:
-            db.export(_INGR_DB_PATH)
-            print('database is updated')
-        else:
-            print('failed to insert value')
-        return DBMsg(is_updated=res)
+class ServerManager(object):
+    def __init__(self, *args, **kwargs):
+        pass
 
+    def _get_servicer(self, clz_name):
+        try:
+            clz = getattr(sys.modules[servicer.__name__], clz_name)
+        except AttributeError as err_attr:
+            err_attr.message += '(Desired servicer is not defined)'
+            raise err_attr
+        return clz
 
+    def _get_helper_method(self, clz_servicer):
+        clz_parent_name = clz_servicer.__bases__[0].__name__
+        hm_name = 'add_{0}_to_server'.format(clz_parent_name)
+        try:
+            hm = getattr(sys.modules[core_pb2_grpc.__name__], hm_name)
+        except AttributeError as err_attr:
+            err_attr.message += '(Desired helper method is not defined)'
+            raise err_attr
+        return hm
 
-class Echoer(EchoerServicer):
-    def Echo(self, request, context):
-        print('server: {0}'.format(request.content))
-        return request
+    def start_service(self, clz_name):
+        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        clz_servicer = self._get_servicer(clz_name)
+        hm = self._get_helper_method(clz_servicer)
 
-    def GhostEcho(self, request, context):
-        print('server: beeeeeeeeeeeee')
-        return request
- 
-
-def serve_ingrdb():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    add_IngrDBManagerServicer_to_server(IngrDBManager(), server)
-    server.add_insecure_port('[::]:50051')
-    server.start()
-    print('grpc server is running: serve_ingrdb')
-    try:
-        while True:
-            time.sleep(_ONE_DAY_IN_SECONDS)
-    except KeyboardInterrupt:
-        server.stop(0)
-
-
-def serve_echo():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    add_EchoerServicer_to_server(Echoer(), server)
-    server.add_insecure_port('[::]:50051')
-    server.start()
-    print('grpc server is running: serve_echo')
-    try:
-        while True:
-            time.sleep(_ONE_DAY_IN_SECONDS)
-    except KeyboardInterrupt:
-        server.stop(0)
+        # register service
+        hm(clz_servicer(), server)
+        server.add_insecure_port('[::]:50051')
+        server.start()
+        print('grpc server is running: {0}'.format(clz_name))
+        try:
+            while True:
+                time.sleep(_ONE_DAY_IN_SECONDS)
+        except KeyboardInterrupt:
+            server.stop(0)

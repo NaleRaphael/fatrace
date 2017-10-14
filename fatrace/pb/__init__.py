@@ -5,6 +5,8 @@ from .core_pb2_grpc import *
 from .server import *
 from .client import *
 from .converter import *
+from .servicer import *
 
 __all__ = []
-__all__.extend(['core_pb2', 'core_pb2_grpc', 'server', 'client', 'converter'])
+__all__.extend(['core_pb2', 'core_pb2_grpc', 'server', 'client', 'converter', 
+                'servicer'])

@@ -3,14 +3,14 @@ from fatrace.pb import server
 
 from argparse import ArgumentParser
 
-func_entry = {
-    'ingrdb': server.serve_ingrdb,
-    'echo': server.serve_echo
+SERVICER_DICT = {
+    'ingrdb': 'IngrDBManager',
+    'echo': 'Echoer'
 }
 
 def parse_args():
     parser = ArgumentParser()
-    parser.add_argument('entry', metavar='func_entry')
+    parser.add_argument('servicer_name', metavar='servicer_name')
 
     try:
         args = parser.parse_args()
@@ -21,11 +21,13 @@ def parse_args():
 
 def main():
     args = parse_args()
-    arg_dict = vars(args)
     try:
-        if args.entry not in func_entry:
-            print('No given entry: {0}'.format(args.entry))
-        func_entry[args.entry]()
+        if args.servicer_name not in SERVICER_DICT:
+            raise Exception('No given servicer: {0}'.format(args.servicer_name))
+        else:
+            servicer = SERVICER_DICT[args.servicer_name]
+        service_manager = server.ServerManager()
+        service_manager.start_service(servicer)
     except:
         raise
 
