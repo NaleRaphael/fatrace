@@ -6,7 +6,8 @@ from .config import DataConfig
 from .io import JsonWriter
 
 __all__ = [
-    'Menu', 'Ingredient', 'Seasoning', 'Dish', 'DailyMenu', 'IngredientDB'
+    'MenuSheet', 'IngredientSheet', 'SeasoningSheet', 
+    'Dish', 'DailyMenu', 'IngredientDB'
 ]
 
 # TODO: set `datetime_format` by reading from config file
@@ -47,25 +48,25 @@ class XlsxFile(object):
         writer.save()
 
 
-class Menu(XlsxFile):
+class MenuSheet(XlsxFile):
     """
     @attr config : configurations and settings of menu
     @attr dmlist : list of daily menu
     """
     def __init__(self):
-        super(Menu, self).__init__()
+        super(MenuSheet, self).__init__()
         self.config = DataConfig().menu
         self.dmlist = []
 
     @classmethod
     def from_excel(clz, fpath, db=None):
-        obj = super(Menu, clz).from_excel(fpath)
+        obj = super(MenuSheet, clz).from_excel(fpath)
         obj._init_dmlist(db=db)
         return obj
 
     def to_excel(self, opath):
         hd = self.config.header
-        super(Menu, self).to_excel(opath, header=hd)
+        super(MenuSheet, self).to_excel(opath, header=hd)
 
     def _remove_serial_num_of_header(self, delimiter='.'):
         # no matter `parts` can be splitted or not, it will be an list
@@ -82,7 +83,7 @@ class Menu(XlsxFile):
             self.dmlist.append(dm)
 
     def build_ingredient_dataframe(self):
-        return [Ingredient.from_daily_menu(val) for val in self.dmlist]
+        return [IngredientSheet.from_daily_menu(val) for val in self.dmlist]
 
     def export_ingredient_sheet(self, fname='ingr'):
         sheets = self.build_ingredient_dataframe()
@@ -90,16 +91,16 @@ class Menu(XlsxFile):
             sh.to_excel('ingr_{0}.xlsx'.format(sh.date))
 
 
-class Ingredient(XlsxFile):
+class IngredientSheet(XlsxFile):
     def __init__(self, date=None):
-        super(Ingredient, self).__init__()
+        super(IngredientSheet, self).__init__()
         self.config = DataConfig().ingredient
         self.date = date
         self.dishes = None
 
     @classmethod
     def from_daily_menu(clz, daily_menu):
-        ingr = Ingredient(date=daily_menu.date)
+        ingr = IngredientSheet(date=daily_menu.date)
 
         # set default values for dateframe
         dv = ingr.config.default_values.copy()
@@ -110,12 +111,11 @@ class Ingredient(XlsxFile):
         df = pd.DataFrame(dv, index=range(size))
 
         # fill content of dishes
-        cnt = 0
         ingr_list = daily_menu.to_list()
-        for val in ingr_list:
-            df.loc[cnt, ingr.config.k_dish] = val[0]
-            df.loc[cnt, ingr.config.k_ingr] = val[1]
-            cnt += 1
+        for i, val in enumerate(ingr_list):
+            df.loc[i, ingr.config.k_dish] = val[0]
+            df.loc[i, ingr.config.k_ingr] = val[1].name
+            df.loc[i, ingr.config.k_weight] = val[1].weight
 
         # reorder header
         ingr.df = df.reindex_axis(ingr.config.header, axis=1)
@@ -123,13 +123,13 @@ class Ingredient(XlsxFile):
 
     @classmethod
     def from_excel(clz, fpath):
-        obj = super(Ingredient, clz).from_excel(fpath)
+        obj = super(IngredientSheet, clz).from_excel(fpath)
         obj._set_date()
         obj._init_dishes()
         return obj
 
     def to_excel(self, opath):
-        super(Ingredient, self).to_excel(opath)
+        super(IngredientSheet, self).to_excel(opath)
 
     def _set_date(self):
         try:
@@ -150,24 +150,36 @@ class Ingredient(XlsxFile):
         self.dishes.from_dict(d)
 
 
-class Seasoning(XlsxFile):
+class SeasoningSheet(XlsxFile):
     def __init__(self):
-        super(Seasoning, self).__init__()
+        super(SeasoningSheet, self).__init__()
         self.config = DataConfig().seasoning
 
     def to_excel(self, opath):
-        super(Seasoning, self).to_excel(opath)
+        super(SeasoningSheet, self).to_excel(opath)
+
+
+class Ingredient(object):
+    __slots__ = ('name', 'weight')
+    def __init__(self, *args, **kwargs):
+        self.name = kwargs.pop('name', '')
+        self.weight = kwargs.pop('weight', 0.0)
 
 
 class Dish(dict):
     """
     @attr name : Name of dish
-    @attr ingr : Ingredients of dish
+    @attr ingrs : Ingredients of dish
     """
     def __init__(self, *args, **kwargs):
         self.name = kwargs.pop('name', '')
-        self.ingr = kwargs.pop('ingr', [])
-        super(Dish, self).__init__({self.name: self.ingr})
+        temp = kwargs.pop('ingrs', [])
+        # By doing this, we can force to initialize self.ingrs by class 
+        # `Ingredient` no matter 
+        if len(temp) == 0:
+            temp = [u'']
+        self.ingrs = [Ingredient(name=v) for v in temp]
+        super(Dish, self).__init__({self.name: self.ingrs})
 
     def expand(self):
         """
@@ -186,7 +198,7 @@ class Dish(dict):
         ['corn_soup', 'butter'],
         ['corn_soup', 'egg']]
         """
-        ingr_list = [''] if len(self.ingr) == 0 else self.ingr
+        ingr_list = [''] if len(self.ingrs) == 0 else self.ingrs
         return [(self.name, v) for v in ingr_list]
 
 
@@ -214,7 +226,7 @@ class DailyMenu(list):
         if type(db) is not IngredientDB:
             raise TypeError('Type of `db` should be `IngredientDB`.')
         if db is not None:
-            parsed = [Dish(name=src[k], ingr=db.query(src[k])) for k in desired]
+            parsed = [Dish(name=src[k], ingrs=db.query(src[k])) for k in desired]
         else:
             parsed = [Dish(name=src[k]) for k in desired]
         self.extend(parsed)
@@ -224,7 +236,7 @@ class DailyMenu(list):
 
     def count_ingr(self, cnt_empty_list=True):
         # get length of ingredients of each dish
-        lens = map(len, [v.ingr for v in self])
+        lens = map(len, [v.ingrs for v in self])
 
         if cnt_empty_list == True:
             lens = map(lambda x: 1 if x == 0 else x, lens)

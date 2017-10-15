@@ -43,6 +43,7 @@ class IngredientConfig(ConfigBase):
         self.k_date = self.misc.pop('k_date')
         self.k_dish = self.misc.pop('k_dish')
         self.k_ingr = self.misc.pop('k_ingr')
+        self.k_weight = self.misc.pop('k_weight')
 
 
 class SeasoningConfig(ConfigBase):

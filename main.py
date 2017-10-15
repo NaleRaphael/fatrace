@@ -2,10 +2,10 @@ from __future__ import absolute_import, print_function, division
 import traceback
 
 from fatrace.core import config
-from fatrace.core import Menu, IngredientDB
+from fatrace.core import MenuSheet, IngredientDB
 
 def main(fpath):
-    menu = Menu()
+    menu = MenuSheet()
     menu.from_excel(fpath)
     menu.to_excel('test.xlsx')
 
@@ -15,7 +15,7 @@ def config_test():
 
 def build_table_from_menu(fpath, dbpath):
     ingrdb = IngredientDB(dbpath)
-    menu = Menu.from_excel(fpath, db=ingrdb)
+    menu = MenuSheet.from_excel(fpath, db=ingrdb)
     menu.export_ingredient_sheet()
 
 def db_test(dbpath):
