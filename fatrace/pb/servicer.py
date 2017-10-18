@@ -1,21 +1,30 @@
 from __future__ import absolute_import
 
-from fatrace.pb.core_pb2 import DBMsg
-from fatrace.pb.core_pb2_grpc import IngrDBManagerServicer, EchoerServicer
-from fatrace.pb.converter import Converter
-from fatrace.core import IngredientDB
+import sys
+
+from fatrace.pb.core_pb2 import (
+    DBMsg, 
+)
+from fatrace.pb.core_pb2_grpc import (
+    IngrDBManagerServicer, EchoerServicer, FatraceEditorServicer, 
+    TesterServicer
+)
+from fatrace.pb.converter import PBConverter
+from fatrace.core import (
+    IngredientDB, MenuSheet, IngredientSheet, DailyMenu, Dish
+)
 
 _ONE_DAY_IN_SECONDS = 60*60*24
 _INGR_DB_PATH = 'db_ingr.json'
 
-__all__ = ['IngrDBManager', 'Echoer']
+__all__ = ['IngrDBManager', 'Echoer', 'FatraceEditor', 'Tester']
 
 class IngrDBManager(IngrDBManagerServicer):
     # TODO: improve this
     def Insert(self, request, context):
-        obj = Converter.toDish(request)
+        obj = PBConverter.toDish(request)
         db = IngredientDB(_INGR_DB_PATH)
-        res = db.insert(obj.name, obj.ingr)
+        res = db.insert(obj.name, obj.ingrs)
         if res:
             db.export(_INGR_DB_PATH)
             print('database is updated')
@@ -32,3 +41,27 @@ class Echoer(EchoerServicer):
     def GhostEcho(self, request, context):
         print('server: beeeeeeeeeeeee')
         return request
+
+
+class FatraceEditor(FatraceEditorServicer):
+    def GetMenu(self, request, context):
+        pass
+
+
+class Tester(TesterServicer):
+    def testIngr(self, request, context):
+        obj = PBConverter.toIngr(request)
+        print('convert from requeset: {0}'.format(obj))
+        res = PBConverter.fromIngr(obj)
+        print('convert back: {0}'.format(res))
+        return res
+
+    def testDish(self, request, context):
+        obj = PBConverter.toDish(request)
+        print('convert from requeset: {0}'.format(obj))
+        res = PBConverter.fromDish(obj)
+        print('convert back: {0}'.format(res))
+        return res
+
+    def testMenu(self, request, context):
+        pass

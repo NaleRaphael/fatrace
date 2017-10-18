@@ -5,7 +5,8 @@ from argparse import ArgumentParser
 
 SERVICER_DICT = {
     'ingrdb': 'IngrDBManager',
-    'echo': 'Echoer'
+    'echo': 'Echoer',
+    'test': 'Tester'
 }
 
 def parse_args():
