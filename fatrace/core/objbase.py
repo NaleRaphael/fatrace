@@ -174,11 +174,16 @@ class Dish(dict):
     def __init__(self, *args, **kwargs):
         self.name = kwargs.pop('name', '')
         temp = kwargs.pop('ingrs', [])
-        # By doing this, we can force to initialize self.ingrs by class 
-        # `Ingredient` no matter 
+        # Force to initialize self.ingrs by class `Ingredient` no matter
+        # it is empty or not.
         if len(temp) == 0:
-            temp = [u'']
-        self.ingrs = [Ingredient(name=v) for v in temp]
+            self.ingrs = [Ingredient(name=u'')]
+        else:
+            if type(temp[0]) is not Ingredient:
+                raise TypeError(
+                    'Expected type: {0}, but given one is: {1}'.format(
+                    type(Ingredient), type(temp[0])))
+            self.ingrs = temp
         super(Dish, self).__init__({self.name: self.ingrs})
 
     def expand(self):
@@ -226,7 +231,10 @@ class DailyMenu(list):
         if type(db) is not IngredientDB:
             raise TypeError('Type of `db` should be `IngredientDB`.')
         if db is not None:
-            parsed = [Dish(name=src[k], ingrs=db.query(src[k])) for k in desired]
+            parsed = []
+            for k in desired:
+                ingrs = [Ingredient(name=val) for val in db.query(src[k])]
+                parsed.append(Dish(name=src[k], ingrs=ingrs))
         else:
             parsed = [Dish(name=src[k]) for k in desired]
         self.extend(parsed)
@@ -322,7 +330,7 @@ class IngredientDB(dict):
         if type(val) is not list:
             raise TypeError('Given `val` should be a list.')
         key = key.decode(ori_encodig)
-        val = [v.decode(ori_encodig) for v in val]
+        val = [v.name.decode(ori_encodig) for v in val]
         is_exist = key in self
         if not is_exist or (is_exist and overwrite):
             self[key] = val
