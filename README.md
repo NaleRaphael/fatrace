@@ -1,9 +1,9 @@
 # Editor for [fatraceschool][url_fatraceschool]
-!!! UI of this app is not completed, so you have to execute this by editing the variables in `main.py` and running a Python process. !!!
+**UI of this app is not completed, so you have to execute this by editing the variables in `main.py` and running a Python process.**
 
 A editor to reduce repeated works on recording ingredients information of lunch for students.
 
-* Requirement
+* Requirement  
 Python 2.7 (for Windows users, [WinPython][url_winpython] is recommended)
 
 
@@ -12,7 +12,7 @@ Python 2.7 (for Windows users, [WinPython][url_winpython] is recommended)
 ```python
 # @line 27, 28
 fpath = r'path\of\your\menu.xlsx'
-dbpath = r'path\of\ingredient_database.json'
+dbpath = r'path\of\ingredient_database.json' # default: db_ingr.json
 ```
 
 2. Execute this script, and output files will locates in the working directory.
