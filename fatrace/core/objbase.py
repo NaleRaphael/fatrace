@@ -1,4 +1,5 @@
 from __future__ import absolute_import, print_function, division
+from os.path import join as path_join
 import pandas as pd
 import json
 
@@ -85,10 +86,13 @@ class MenuSheet(XlsxFile):
     def build_ingredient_dataframe(self):
         return [IngredientSheet.from_daily_menu(val) for val in self.dmlist]
 
-    def export_ingredient_sheet(self, fname='ingr'):
+    def export_ingredient_sheet(self, odir='', fname='ingr'):
         sheets = self.build_ingredient_dataframe()
         for sh in sheets:
-            sh.to_excel('ingr_{0}.xlsx'.format(sh.date))
+            fname = 'ingr_{0}.xlsx'.format(sh.date)
+            if odir != '':
+                fname = path_join(fname)
+            sh.to_excel(fname)
 
 
 class IngredientSheet(XlsxFile):
@@ -272,6 +276,7 @@ class IngredientDB(dict):
     def __init__(self, fpath):
         if IngredientDB.__initialized: return
         self.load(fpath)
+        self.src_path = fpath
         IngredientDB.__initialized = True
 
     def load(self, fpath):
@@ -283,6 +288,9 @@ class IngredientDB(dict):
             JsonWriter.export(self, fpath)
         except:
             raise
+
+    def save(self):
+        self.export(self.src_path)
 
     @classmethod
     def collect(clz, ingr_dir, ingr_pattern, load_right_away=False,
@@ -330,7 +338,7 @@ class IngredientDB(dict):
         if type(val) is not list:
             raise TypeError('Given `val` should be a list.')
         key = key.decode(ori_encodig)
-        val = [v.name.decode(ori_encodig) for v in val]
+        val = [v.decode(ori_encodig) for v in val]
         is_exist = key in self
         if not is_exist or (is_exist and overwrite):
             self[key] = val
