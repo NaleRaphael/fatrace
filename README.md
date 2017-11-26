@@ -10,12 +10,12 @@ Python 2.7 (for Windows users, [WinPython][url_winpython] is recommended)
 ## Usage
 * Generate ingredient sheets from menu.
 ```bash
-> python main.py parse -f [menu.xlsx]
+> python main.py parse -f [menu.xlsx] [-o [output_directory] --db [path_of_database]]
 ```
 
 * Insert new dish into database.
 ```bash
-> python main.py update_db -d [dish_name] -i [ingredient_01 ingredient_02 ...]
+> python main.py update_db -d [dish_name] -i [ingredient_01 ingredient_02 ...] [--force [True/False] --db [path_of_database]]
 ```
 
 [url_fatraceschool]: https://fatraceschool.moe.gov.tw/ "fatraceschool"

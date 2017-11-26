@@ -22,12 +22,14 @@ def parse_args():
     sp_parse.add_argument('--db', dest='dbpath', metavar='dbpath', 
                           default='db_ingr.json')
 
-    sp_updatedb.add_argument('-d', dest='name', 
+    sp_updatedb.add_argument('-d', nargs=1, dest='name', 
                              metavar='dish_name', type=str, 
                              default=None)
     sp_updatedb.add_argument('-i', nargs='+', dest='ingr', 
                              metavar='dish_ingr', 
                              default=[])
+    sp_updatedb.add_argument('--force', dest='force', metavar='force_update', 
+                             default=False)
     sp_updatedb.add_argument('--db', dest='dbpath', metavar='dbpath', 
                              default='db_ingr.json')
 
@@ -64,11 +66,12 @@ def update_ingr_database(**kwargs):
     dbpath = kwargs.pop('dbpath')
     name = kwargs.pop('name')
     ingr = kwargs.pop('ingr')
+    force_update = kwargs.pop('force')
     print('name: {0}'.format(name))
     print('ingr: {0}'.format(ingr))
 
     ingrdb = IngredientDB(dbpath)
-    is_sucessful = ingrdb.insert(name, ingr)
+    is_sucessful = ingrdb.insert(name, ingr, overwrite=force_update)
     if is_sucessful:
         ingrdb.save()
         print('Database is updated!')
@@ -82,7 +85,6 @@ FUNC_ENTRY = {
 }
 def main():
     args = parse_args()
-    arg_dict = vars(args)
     try:
         if args.cmd not in FUNC_ENTRY:
             raise Exception('Given command is not valid: {0}'.format(args.cmd))
@@ -90,9 +92,7 @@ def main():
         raise
 
     try:
-#        print(args)
-#        return
-        FUNC_ENTRY[args.cmd](**arg_dict)
+        FUNC_ENTRY[args.cmd](**vars(args))
     except:
         raise
 

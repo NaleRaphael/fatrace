@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function, division
-from os.path import join as path_join
+from os import makedirs
+from os import path
 import pandas as pd
 import json
 
@@ -91,7 +92,9 @@ class MenuSheet(XlsxFile):
         for sh in sheets:
             fname = 'ingr_{0}.xlsx'.format(sh.date)
             if odir != '':
-                fname = path_join(fname)
+                if not path.exists(odir):
+                    makedirs(path.abspath(odir), )
+                fname = path.abspath(path.join(odir, fname))
             sh.to_excel(fname)
 
 
